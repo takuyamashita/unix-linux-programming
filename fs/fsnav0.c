@@ -13,6 +13,7 @@ void showlist(void);
 void showcwd(void);
 void goup(void);
 void godown(void);
+void delfile(void);
 
 struct termios termsave, termcur;
 
@@ -70,6 +71,23 @@ void godown(void){
     tcsetattr(STDIN_FILENO, TCSANOW, &termcur);
 }
 
+void delfile(void){
+    char buf[PATH_MAX + 1], *p;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &termsave);
+
+    fputs("file to remove? ", stderr);
+    fgets(buf, sizeof(buf), stdin);
+
+    if((p = strchr(buf, '\n')) != NULL)
+	*p = '\0';
+
+    if(unlink(buf) != 0)
+	perror("unlink");
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &termcur);
+}
+
 int main(void){
     int c;
     tcgetattr(STDIN_FILENO, &termsave);
@@ -107,6 +125,9 @@ int main(void){
 		break;
 	    case 'q':
 		exit(0);
+	    case 'r':
+		delfile();
+		break;
 	    default: fprintf(stderr, "unknown command '%c'\n", c);
 		break;
 	}
