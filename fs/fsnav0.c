@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <termios.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 void restoreterm(void);
 void showlist(void);
@@ -14,6 +15,8 @@ void showcwd(void);
 void goup(void);
 void godown(void);
 void delfile(void);
+void makedir(void);
+void deldir(void);
 
 struct termios termsave, termcur;
 
@@ -88,6 +91,40 @@ void delfile(void){
     tcsetattr(STDIN_FILENO, TCSANOW, &termcur);
 }
 
+void makedir(void){
+    char buf[PATH_MAX + 1], *p;
+    
+    tcsetattr(STDIN_FILENO, TCSANOW, &termsave);
+    
+    fputs("new dirctory name? ", stderr);
+    fgets(buf, sizeof(buf), stdin);
+
+    if((p = strchr(buf, '\n')) != NULL)
+	*p = '\0';
+
+    if(mkdir(buf, 0777) != 0)
+	perror("mkdir");
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &termcur);
+}
+
+void deldir(void){
+    char buf[PATH_MAX + 1], *p;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &termsave);
+
+    fputs("directory to remove? ", stderr);
+    fgets(buf, sizeof(buf), stdin);
+
+    if((p = strchr(buf, '\n')) != NULL)
+	*p = '\0';
+
+    if(rmdir(buf) != 0)
+	perror("rmdir");
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &termcur);
+}
+
 int main(void){
     int c;
     tcgetattr(STDIN_FILENO, &termsave);
@@ -127,6 +164,12 @@ int main(void){
 		exit(0);
 	    case 'r':
 		delfile();
+		break;
+	    case 'M':
+		makedir();
+		break;
+	    case 'R':
+		deldir();
 		break;
 	    default: fprintf(stderr, "unknown command '%c'\n", c);
 		break;
