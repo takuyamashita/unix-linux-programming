@@ -14,6 +14,20 @@ enum {
     NQUEUESIZE = 5,
 };
 
+void sendmessage(int s){
+    char buf[1024];
+
+    while(fgets(buf, sizeof(buf), stdin) != NULL){
+	if(write(s, buf, strlen(buf)) == -1){
+	    fprintf(stderr, "send error\n");
+	    return;
+	}
+    }
+
+    /* EOFを消す */
+    clearerr(stdin);
+}
+
 char *message = "Hello!\nGood-bye!!\n";
 
 int main(void){
@@ -75,10 +89,11 @@ int main(void){
 
 	fprintf(stderr, "Sending the message...\n");
 	/* 通信用のディスクリプタ(ws)に書き込む  */
-	if((cc = write(ws, message, strlen(message))) == -1){
+	/*if((cc = write(ws, message, strlen(message))) == -1){
 	    perror("write");
 	    exit(1);
-	}
+	}*/
+	sendmessage(ws);
 
 	fprintf(stderr, "Message sent.\n");
 
